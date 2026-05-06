@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Quest — Coming Soon</title>
+<meta name="description" content="Studio Quest is an interim creative strategy team based in Amsterdam, but working across Europe. Official launch soon.">
+
+<style>
+/* ─── FONTS (local) ─── */
+@font-face {
+  font-family: 'GTWalsheim';
+  src: url('assets/fonts/GTWalsheim-900-normal.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'BigCaslon';
+  src: url('assets/fonts/BigCaslonFB-900-italic.woff') format('woff'),
+       url('assets/fonts/BigCaslon-900-italic.ttf') format('truetype');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Barlow';
+  src: url('assets/fonts/Barlow-400-normal.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Barlow';
+  src: url('assets/fonts/Barlow-700-normal.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Quest palette */
+  --green:   #022A1F;
+  --mint:    #CEF2DD;
+  --salmon:  #F4DDC8;
+  --burg:    #2D0100;
+
+  /* Live theme tokens — mutated by JS as the page cycles through pairings */
+  --bg:       var(--mint);
+  --fg:       var(--green);
+  --rule:     rgba(2, 42, 31, 0.18);
+  --fg-muted: rgba(2, 42, 31, 0.55);
+
+  --font-hed:   'GTWalsheim','Gill Sans MT','Gill Sans',sans-serif;
+  --font-body:  'Barlow', sans-serif;
+  --font-serif: 'BigCaslon','Big Caslon FB','Big Caslon','Didot',Georgia,serif;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  transition: background 1.4s ease, color 1.4s ease;
+}
+
+/* ─── SIDE COLUMN (logo + intro copy + CTA) ─── */
+#side {
+  position: fixed; left: 2.5rem; top: 0; bottom: 0;
+  width: 220px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 2rem 0;
+  z-index: 200;
+}
+
+.side-logo {
+  display: flex; align-items: center;
+  margin-bottom: 2.5rem;
+  background: none; border: none; padding: 0;
+}
+.side-logo img {
+  height: 44px; width: auto; display: block;
+}
+
+/* Intro copy occupies the column where the menu used to be.
+   Hairline rules above and below echo the look of the original navigation.
+   Body uses Barlow regular (the only true regular weight we have locally),
+   kept at the menu's size + tracking + uppercase so the column visual is
+   preserved. */
+.side-copy {
+  display: block;
+  padding: 0.85rem 0 1rem;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  line-height: 1.65;
+  transition: color 1.4s ease, border-color 1.4s ease;
+}
+.side-copy .launch {
+  display: block;
+  margin-top: 0.7rem;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 1rem;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.15;
+  color: var(--fg);
+}
+
+.side-cta-wrap {
+  margin-top: 1.25rem;
+}
+
+.side-cta {
+  display: inline-block;
+  border: 1px solid var(--fg);
+  padding: 0.85rem 1.5rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 1.4s ease;
+}
+.side-cta:hover { background: var(--fg); color: var(--bg); }
+.side-cta:active { transform: scale(0.97); }
+
+/* Socials — sit beneath the CTA in the side column as text links.
+   Match the side-copy: Barlow regular, 0.78rem, 0.08em tracking, uppercase,
+   full column width, muted at rest, full forest on hover. The "+" prefix
+   echoes the directional indicator from the original navigation. */
+.socials {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1.5rem;
+}
+.socials a {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.socials a:hover { color: var(--fg); }
+
+/* ─── HERO TICKER (carousel of type) ─── */
+#hero {
+  position: fixed; inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-anchor {
+  position: absolute;
+  left: 20rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-hed);
+  font-weight: 900;
+  font-size: clamp(1.4rem, 2.8vw, 2.66rem);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--fg);
+  z-index: 3;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: color 1.4s ease;
+}
+
+.ticker-wrap {
+  position: absolute;
+  left: calc(20rem + clamp(100px, 11vw, 180px) + 0.25em);
+  top: 0; bottom: 0; right: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.ticker-track {
+  display: flex; flex-direction: column;
+  will-change: transform;
+}
+.ticker-set {
+  display: flex; flex-direction: column;
+}
+
+.q-row {
+  display: flex; align-items: baseline;
+  padding: 0.55rem 0;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.q-mid {
+  font-family: var(--font-hed);
+  font-weight: 900;
+  font-size: clamp(1.4rem, 2.8vw, 2.66rem);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--fg);
+  line-height: 1.15;
+  transition: color 1.4s ease;
+}
+.q-rest {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 900;
+  font-size: clamp(1rem, 2.1vw, 2rem);
+  color: var(--fg);
+  line-height: 1.2;
+  transition: color 1.4s ease;
+}
+
+/* Two opaque background panels cover the ticker above and below the anchor.
+   Only the anchor row reads at full strength; everything else fades into the
+   background. Panels track the live --bg colour. */
+.ticker-cover {
+  position: absolute; left: 0; right: 0;
+  background: var(--bg);
+  opacity: 0.78;
+  z-index: 2;
+  pointer-events: none;
+  transition: background 1.4s ease;
+}
+.ticker-cover.top { top: 0; }
+.ticker-cover.bot { bottom: 0; }
+
+/* ─── EMAIL MODAL ─── */
+.modal {
+  position: fixed; inset: 0; z-index: 500;
+  display: none;
+  align-items: center; justify-content: center;
+  background: rgba(2, 42, 31, 0.7);
+  backdrop-filter: blur(4px);
+  transition: background 0.25s;
+}
+.modal.open { display: flex; }
+
+.modal-panel {
+  position: relative;
+  width: min(92vw, 520px);
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--fg);
+  padding: 2.5rem 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.9rem; right: 1.25rem;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg);
+  opacity: 0.55;
+  background: none; border: none;
+  cursor: pointer;
+  transition: opacity 0.18s;
+}
+.modal-close:hover { opacity: 1; }
+
+.modal-eyebrow {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg);
+  opacity: 0.55;
+  margin-bottom: 0.75rem;
+}
+.modal-title {
+  font-family: var(--font-hed);
+  font-weight: 900;
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+  line-height: 1.0;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+.modal-title .accent {
+  display: block;
+  margin-top: 0.4rem;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 900;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.modal-sub {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin-bottom: 1.5rem;
+  opacity: 0.75;
+}
+
+.modal-form {
+  display: flex; flex-direction: column;
+  gap: 1.25rem;
+}
+.field-label {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 0.4rem;
+}
+.field-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid currentColor;
+  padding: 0.6rem 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--fg);
+  outline: none;
+}
+.field-input::placeholder { opacity: 0.3; color: currentColor; }
+
+.modal-submit {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+  border: 1px solid var(--fg);
+  padding: 0.85rem 1.75rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.modal-submit:hover { background: var(--fg); color: var(--bg); }
+.modal-submit:active { transform: scale(0.97); }
+
+.modal-success {
+  display: none;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.modal-success .accent {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 900;
+}
+.modal.success-state .modal-form { display: none; }
+.modal.success-state .modal-success { display: block; }
+
+/* ─── MOBILE TOPBAR (logo + hamburger) ─── */
+#mobileTopbar {
+  display: none; /* desktop hides it; mobile @media flips to flex */
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 220;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.25rem;
+  pointer-events: none; /* allow clicks through to the carousel except on the controls */
+}
+#mobileTopbar > * { pointer-events: auto; }
+
+.mobile-logo {
+  background: none; border: none; padding: 0;
+  cursor: pointer;
+}
+.mobile-logo img {
+  height: 36px; width: auto; display: block;
+}
+
+.hamburger {
+  background: none; border: none; padding: 0.5rem;
+  cursor: pointer;
+  display: flex; flex-direction: column; gap: 5px;
+  width: 38px; height: 38px;
+  align-items: flex-end; justify-content: center;
+  transition: opacity 0.2s;
+}
+.hamburger:active { transform: scale(0.95); }
+.hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--fg);
+  transition: transform 0.28s ease, opacity 0.18s ease;
+  transform-origin: center;
+}
+.hamburger span:nth-child(2) { width: 18px; }
+
+/* X state when open — toggled by JS via .is-open on the hamburger button */
+.hamburger.is-open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+  width: 24px;
+}
+.hamburger.is-open span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.is-open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+  width: 24px;
+}
+
+/* ─── MOBILE MESSAGE OVERLAY (opens from hamburger) ─── */
+#message-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  background: var(--bg);
+  padding: 5rem 2rem 3rem;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+#message-overlay.open { display: flex; }
+
+.message-inner {
+  max-width: 360px;
+  width: 100%;
+}
+.message-copy {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+.message-copy .launch {
+  display: block;
+  margin-top: 1rem;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 1.4rem;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.15;
+  color: var(--fg);
+}
+.message-cta {
+  display: inline-block;
+  margin-top: 1rem;
+  border: 1px solid var(--fg);
+  padding: 0.95rem 1.75rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg);
+  background: transparent;
+  cursor: pointer;
+}
+.message-cta:active { transform: scale(0.97); }
+
+/* ─── RESPONSIVE BREAKPOINT ─── */
+@media (max-width: 768px) {
+  /* Hide the desktop side column entirely. */
+  #side { display: none; }
+
+  /* Show mobile topbar. */
+  #mobileTopbar { display: flex; }
+
+  /* Carousel becomes the full-bleed lead element. */
+  #hero { position: fixed; inset: 0; }
+
+  .hero-anchor {
+    left: 1.5rem;
+    font-size: clamp(1.7rem, 8vw, 2.4rem);
+  }
+  .ticker-wrap {
+    left: calc(1.5rem + clamp(110px, 38vw, 200px) + 0.2em);
+    right: 0;
+  }
+  .q-mid {
+    font-size: clamp(1.7rem, 8vw, 2.4rem);
+  }
+  .q-rest {
+    font-size: clamp(1.2rem, 6vw, 1.8rem);
+  }
+
+  /* Modal — give it edge breathing room on small screens. */
+  .modal-panel {
+    width: calc(100vw - 2rem);
+    padding: 2.25rem 1.5rem 1.75rem;
+  }
+
+  html, body { overflow: hidden; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ─── SIDE COLUMN ─── -->
+<aside id="side">
+  <div>
+    <button class="side-logo" type="button" aria-label="Studio Quest">
+      <img id="logoImg" src="assets/media/QUEST-LOGO_FOREST.svg" alt="Quest">
+    </button>
+
+    <p class="side-copy">
+      Studio Quest is an interim creative strategy team based in Amsterdam, but working across Europe.
+      <span class="launch">Official launch soon!</span>
+    </p>
+
+    <div class="side-cta-wrap">
+      <button class="side-cta" type="button" onclick="openModal()">Stay tuned +</button>
+    </div>
+
+    <!-- Social links — update hrefs once handles are confirmed. -->
+    <nav class="socials" aria-label="Studio Quest on social media">
+      <a href="https://www.instagram.com/weare.quest" target="_blank" rel="noopener noreferrer">+ Instagram</a>
+      <a href="https://www.linkedin.com/company/studioquest-eu/" target="_blank" rel="noopener noreferrer">+ LinkedIn</a>
+    </nav>
+  </div>
+</aside>
+
+<!-- ─── MOBILE TOPBAR (logo + hamburger) ─── -->
+<div id="mobileTopbar">
+  <button class="mobile-logo" type="button" aria-label="Studio Quest" onclick="closeMessage()">
+    <img src="assets/media/QUEST-LOGO_FOREST.svg" alt="Quest">
+  </button>
+  <button class="hamburger" id="hamburgerBtn" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMessage()">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<!-- ─── MOBILE MESSAGE OVERLAY ─── -->
+<div id="message-overlay" role="dialog" aria-modal="true" aria-labelledby="messageCopy">
+  <div class="message-inner">
+    <p class="message-copy" id="messageCopy">
+      Studio Quest is an interim creative strategy team based in Amsterdam, but working across Europe.
+      <span class="launch">Official launch soon!</span>
+    </p>
+    <button class="message-cta" type="button" onclick="closeMessage(); openModal();">Stay tuned +</button>
+
+    <nav class="socials" style="align-items:center; margin-top: 2rem;" aria-label="Studio Quest on social media">
+      <a href="https://www.instagram.com/weare.quest" target="_blank" rel="noopener noreferrer">+ Instagram</a>
+      <a href="https://www.linkedin.com/company/studioquest-eu/" target="_blank" rel="noopener noreferrer">+ LinkedIn</a>
+    </nav>
+  </div>
+</div>
+
+<!-- ─── HERO TICKER ─── -->
+<div id="hero">
+  <div class="hero-anchor" id="heroAnchor">A QUEST</div>
+  <div class="ticker-wrap">
+    <div class="ticker-cover top" id="tickerCoverTop"></div>
+    <div class="ticker-cover bot" id="tickerCoverBot"></div>
+    <div class="ticker-track" id="ticker"></div>
+  </div>
+</div>
+
+<!-- ─── EMAIL MODAL ─── -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-panel">
+    <button class="modal-close" type="button" onclick="closeModal()" aria-label="Close">Close ×</button>
+
+    <p class="modal-eyebrow">Stay tuned</p>
+    <h2 class="modal-title" id="modalTitle">We'll reach out <span class="accent">when we're live.</span></h2>
+    <p class="modal-sub">Drop your email and we'll get in touch the moment the full Studio Quest site is up.</p>
+
+    <form class="modal-form" id="signupForm" onsubmit="handleSignup(event)" novalidate>
+      <div>
+        <label class="field-label" for="signupName">Your name</label>
+        <input class="field-input" type="text" id="signupName" name="name" placeholder="First and last name" required>
+      </div>
+      <div>
+        <label class="field-label" for="signupEmail">Email</label>
+        <input class="field-input" type="email" id="signupEmail" name="email" placeholder="you@company.com" required>
+      </div>
+      <button class="modal-submit" type="submit">Keep me posted +</button>
+    </form>
+
+    <div class="modal-success">
+      <p>Thank you — <span class="accent">we'll be in touch.</span></p>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BETWEEN THE QUOTES.
+   Looks like: https://script.google.com/macros/s/AKfy.../exec
+   Until this is filled in, signups are logged to the console only.
+   ───────────────────────────────────────────────────────────── */
+const SIGNUP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbz1AFF7dr6qKCHQQdTgS74xE-zp_Dg3VnlNwkcPSh3PsnrpXIZausBBXrgYlEeiFNNK/exec';
+
+
+/* ─── CAROUSEL OF TYPE ─── */
+const lines = [
+  ['BEGINS WITH',          'a question'],
+  ['NEEDS THE',             'right people'],
+  ['IS NOT',                'a gig'],
+  ['TAKES',                 'courage'],
+  ["DOESN'T ALWAYS GO",     'to plan'],
+  ['CREATES THINGS THAT',   "didn't exist"],
+  ['DEMANDS THE',           'right team'],
+  ['CHANGES',               'you'],
+  ['IS HARDER THAN',        'it looks'],
+  ['LEAVES',                'everyone better'],
+  ['IS NEVER',              'just work'],
+  ['IS',                    'worth it'],
+  ['FINDS WHAT YOU',        'are looking for'],
+  ['IS NEVER FINISHED',     'at 17:00'],
+  ["ISN'T FOR",             'everyone'],
+  ["DOESN'T DO",            'ordinary briefs'],
+];
+
+const ticker = document.getElementById('ticker');
+const N_LINES = lines.length;
+
+function buildSet() {
+  const set = document.createElement('div');
+  set.className = 'ticker-set';
+  lines.forEach(([mid, serif]) => {
+    const row = document.createElement('div');
+    row.className = 'q-row';
+    row.innerHTML = `<span class="q-mid">${mid}&nbsp;</span><span class="q-rest"><em>${serif}</em></span>`;
+    set.appendChild(row);
+  });
+  return set;
+}
+
+ticker.appendChild(buildSet());
+ticker.appendChild(buildSet());
+
+let tickerRows = ticker.querySelectorAll('.q-row');
+
+let tickerY = 0;
+let tickerDir = 1;
+const baseSpeedMag = 0.5;
+let scrollBoost = 0;
+let halfH = 0;
+
+function refresh() {
+  tickerRows = ticker.querySelectorAll('.q-row');
+  if (tickerRows.length < N_LINES + 1) return;
+
+  const topA = tickerRows[0].getBoundingClientRect().top;
+  const topB = tickerRows[N_LINES].getBoundingClientRect().top;
+  const h = topB - topA;
+  if (h <= 0) return;
+  halfH = h;
+
+  const wantSets = Math.ceil(window.innerHeight / halfH) + 2;
+  let haveSets = ticker.querySelectorAll('.ticker-set').length;
+  while (haveSets < wantSets) {
+    ticker.appendChild(buildSet());
+    haveSets++;
+  }
+  tickerRows = ticker.querySelectorAll('.q-row');
+}
+
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(refresh).observe(ticker);
+}
+
+const heroAnchorEl = document.getElementById('heroAnchor');
+const tickerWrapEl = document.querySelector('.ticker-wrap');
+const tickerCoverTop = document.getElementById('tickerCoverTop');
+const tickerCoverBot = document.getElementById('tickerCoverBot');
+
+function alignTickerToAnchor() {
+  if (!heroAnchorEl || !tickerWrapEl) return;
+  const rect = heroAnchorEl.getBoundingClientRect();
+  const fs = parseFloat(getComputedStyle(heroAnchorEl).fontSize) || 32;
+  const spaceWidth = fs * 0.28;
+  tickerWrapEl.style.left = (rect.right + spaceWidth) + 'px';
+
+  if (tickerCoverTop && tickerCoverBot) {
+    const wrapRect = tickerWrapEl.getBoundingClientRect();
+    const anchorCenter = rect.top + rect.height / 2;
+    const slotCenterInWrap = anchorCenter - wrapRect.top;
+    const slotHeight = rect.height * 1.35;
+    const slotTop = slotCenterInWrap - slotHeight / 2;
+    const slotBottom = slotCenterInWrap + slotHeight / 2;
+    tickerCoverTop.style.height = Math.max(0, slotTop) + 'px';
+    tickerCoverBot.style.height = Math.max(0, wrapRect.height - slotBottom) + 'px';
+  }
+}
+alignTickerToAnchor();
+window.addEventListener('resize', alignTickerToAnchor);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(alignTickerToAnchor);
+
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
+window.addEventListener('resize', refresh);
+refresh();
+
+window.addEventListener('wheel', (e) => {
+  if (document.getElementById('modal').classList.contains('open')) return;
+  const wheelDir = Math.sign(e.deltaY);
+  if (wheelDir !== 0 && wheelDir !== tickerDir) {
+    tickerDir = wheelDir;
+    scrollBoost = 0;
+  }
+  scrollBoost += Math.abs(e.deltaY) * 0.04;
+  scrollBoost = Math.min(8, scrollBoost);
+}, { passive: true });
+
+function tickerLoop() {
+  if (halfH > 0) {
+    tickerY += tickerDir * (baseSpeedMag + scrollBoost);
+    scrollBoost *= 0.92;
+    tickerY = ((tickerY % halfH) + halfH) % halfH;
+    ticker.style.transform = `translateY(-${tickerY}px)`;
+  }
+  requestAnimationFrame(tickerLoop);
+}
+requestAnimationFrame(tickerLoop);
+
+
+/* Page sits permanently in the mint × forest pairing.
+   The other three logo files (burgundy / salmon / mint) live in
+   assets/media/ for the full site, but aren't referenced here. */
+
+
+/* ─── MOBILE MESSAGE OVERLAY ─── */
+const messageOverlay = document.getElementById('message-overlay');
+const hamburgerBtn   = document.getElementById('hamburgerBtn');
+
+function openMessage() {
+  messageOverlay.classList.add('open');
+  hamburgerBtn.classList.add('is-open');
+  hamburgerBtn.setAttribute('aria-expanded', 'true');
+  hamburgerBtn.setAttribute('aria-label', 'Close menu');
+}
+function closeMessage() {
+  messageOverlay.classList.remove('open');
+  hamburgerBtn.classList.remove('is-open');
+  hamburgerBtn.setAttribute('aria-expanded', 'false');
+  hamburgerBtn.setAttribute('aria-label', 'Open menu');
+}
+function toggleMessage() {
+  if (messageOverlay.classList.contains('open')) closeMessage();
+  else openMessage();
+}
+
+
+/* ─── MODAL ─── */
+const modal = document.getElementById('modal');
+function openModal() {
+  modal.classList.add('open');
+  setTimeout(() => {
+    const e = document.getElementById('signupName');
+    if (e) e.focus();
+  }, 60);
+}
+function closeModal() {
+  modal.classList.remove('open');
+  // Reset to form view next time it opens.
+  setTimeout(() => modal.classList.remove('success-state'), 300);
+}
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) closeModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (modal.classList.contains('open')) closeModal();
+  else if (messageOverlay.classList.contains('open')) closeMessage();
+});
+
+async function handleSignup(e) {
+  e.preventDefault();
+  const name  = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  if (!name || !email) return;
+
+  // Show success state immediately — Google Apps Script web apps can be slow on
+  // a cold first request, and the visitor doesn't need to wait staring at a
+  // spinner. We send the request in the background.
+  modal.classList.add('success-state');
+
+  if (!SIGNUP_ENDPOINT) {
+    console.warn('SIGNUP_ENDPOINT is empty — not sending. Logging instead:', { name, email });
+    return;
+  }
+
+  try {
+    // text/plain dodges the CORS preflight that Apps Script can't satisfy.
+    // Apps Script's doPost reads JSON out of e.postData.contents either way.
+    await fetch(SIGNUP_ENDPOINT, {
+      method: 'POST',
+      mode: 'cors',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ name, email })
+    });
+  } catch (err) {
+    // Most CORS / network errors are silent for the user — the request
+    // typically still reaches the sheet. Log so we can debug if needed.
+    console.warn('Signup post error (request may still have succeeded):', err);
+  }
+}
+</script>
+
+</body>
+</html>
