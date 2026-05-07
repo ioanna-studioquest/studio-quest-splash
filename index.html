@@ -742,34 +742,49 @@ window.addEventListener('wheel', (e) => {
   scrollBoost = Math.min(8, scrollBoost);
 }, { passive: true });
 
-// Touch support — wheel events don't fire on phones, so without this the
-// carousel can't be accelerated by swiping. Track delta-y between touchmove
-// frames and feed it into the same scrollBoost mechanism the wheel uses.
-let lastTouchY = null;
+// Touch / pen support — wheel events don't fire on phones, so without this
+// the carousel can't be accelerated by swiping. We use the Pointer Events
+// API (unified across mouse/touch/pen, supported since iOS 13) and attach
+// to `document` rather than `window`, since some iOS Safari versions don't
+// reliably bubble touch events all the way to the window object.
 function isAnyOverlayOpen() {
   return document.getElementById('modal').classList.contains('open') ||
          document.getElementById('message-overlay').classList.contains('open');
 }
-window.addEventListener('touchstart', (e) => {
+let lastPointerY = null;
+let trackingPointer = false;
+
+document.addEventListener('pointerdown', (e) => {
   if (isAnyOverlayOpen()) return;
-  if (e.touches.length === 1) lastTouchY = e.touches[0].clientY;
+  if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+  lastPointerY = e.clientY;
+  trackingPointer = true;
 }, { passive: true });
-window.addEventListener('touchmove', (e) => {
-  if (isAnyOverlayOpen() || lastTouchY === null || e.touches.length !== 1) return;
-  const y = e.touches[0].clientY;
-  const dy = lastTouchY - y; // swipe up → positive → carousel scrolls down
-  lastTouchY = y;
+
+document.addEventListener('pointermove', (e) => {
+  if (!trackingPointer || isAnyOverlayOpen()) return;
+  if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+  const y = e.clientY;
+  if (lastPointerY === null) { lastPointerY = y; return; }
+  const dy = lastPointerY - y; // swipe up → positive → carousel scrolls down
+  lastPointerY = y;
+  if (dy === 0) return;
 
   const swipeDir = Math.sign(dy);
-  if (swipeDir !== 0 && swipeDir !== tickerDir) {
+  if (swipeDir !== tickerDir) {
     tickerDir = swipeDir;
     scrollBoost = 0;
   }
-  scrollBoost += Math.abs(dy) * 0.05;
+  // Coefficient is higher than the wheel's because finger swipes generate
+  // smaller per-event deltas but at a higher event rate.
+  scrollBoost += Math.abs(dy) * 0.12;
   scrollBoost = Math.min(8, scrollBoost);
 }, { passive: true });
-window.addEventListener('touchend', () => { lastTouchY = null; }, { passive: true });
-window.addEventListener('touchcancel', () => { lastTouchY = null; }, { passive: true });
+
+function endPointer() { trackingPointer = false; lastPointerY = null; }
+document.addEventListener('pointerup',     endPointer, { passive: true });
+document.addEventListener('pointercancel', endPointer, { passive: true });
+document.addEventListener('pointerleave',  endPointer, { passive: true });
 
 function tickerLoop() {
   if (halfH > 0) {
