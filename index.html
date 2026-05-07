@@ -704,7 +704,15 @@ function alignTickerToAnchor() {
     const wrapRect = tickerWrapEl.getBoundingClientRect();
     const anchorCenter = rect.top + rect.height / 2;
     const slotCenterInWrap = anchorCenter - wrapRect.top;
-    const slotHeight = rect.height * 1.35;
+
+    // Slot height should match the actual carousel row height — using just the
+    // anchor's bounding box was unreliable on mobile, where the row's padding
+    // makes it taller than the bare anchor glyph. Take whichever is larger
+    // and add a small buffer so the centred row reveals fully.
+    const aRow = ticker.querySelector('.q-row');
+    const rowHeight = aRow ? aRow.getBoundingClientRect().height : 0;
+    const slotHeight = Math.max(rect.height * 1.35, rowHeight + 6);
+
     const slotTop = slotCenterInWrap - slotHeight / 2;
     const slotBottom = slotCenterInWrap + slotHeight / 2;
     tickerCoverTop.style.height = Math.max(0, slotTop) + 'px';
@@ -714,6 +722,10 @@ function alignTickerToAnchor() {
 alignTickerToAnchor();
 window.addEventListener('resize', alignTickerToAnchor);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(alignTickerToAnchor);
+// Re-run after a short delay — iOS Safari occasionally finishes layout
+// after document.fonts.ready, leaving the slot mis-sized on first paint.
+setTimeout(alignTickerToAnchor, 250);
+setTimeout(alignTickerToAnchor, 1000);
 
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
 window.addEventListener('resize', refresh);
@@ -729,6 +741,35 @@ window.addEventListener('wheel', (e) => {
   scrollBoost += Math.abs(e.deltaY) * 0.04;
   scrollBoost = Math.min(8, scrollBoost);
 }, { passive: true });
+
+// Touch support — wheel events don't fire on phones, so without this the
+// carousel can't be accelerated by swiping. Track delta-y between touchmove
+// frames and feed it into the same scrollBoost mechanism the wheel uses.
+let lastTouchY = null;
+function isAnyOverlayOpen() {
+  return document.getElementById('modal').classList.contains('open') ||
+         document.getElementById('message-overlay').classList.contains('open');
+}
+window.addEventListener('touchstart', (e) => {
+  if (isAnyOverlayOpen()) return;
+  if (e.touches.length === 1) lastTouchY = e.touches[0].clientY;
+}, { passive: true });
+window.addEventListener('touchmove', (e) => {
+  if (isAnyOverlayOpen() || lastTouchY === null || e.touches.length !== 1) return;
+  const y = e.touches[0].clientY;
+  const dy = lastTouchY - y; // swipe up → positive → carousel scrolls down
+  lastTouchY = y;
+
+  const swipeDir = Math.sign(dy);
+  if (swipeDir !== 0 && swipeDir !== tickerDir) {
+    tickerDir = swipeDir;
+    scrollBoost = 0;
+  }
+  scrollBoost += Math.abs(dy) * 0.05;
+  scrollBoost = Math.min(8, scrollBoost);
+}, { passive: true });
+window.addEventListener('touchend', () => { lastTouchY = null; }, { passive: true });
+window.addEventListener('touchcancel', () => { lastTouchY = null; }, { passive: true });
 
 function tickerLoop() {
   if (halfH > 0) {
